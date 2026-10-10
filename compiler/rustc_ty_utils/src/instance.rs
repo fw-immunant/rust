@@ -188,6 +188,25 @@ fn resolve_associated_item<'tcx>(
             );
             let args = infcx.tcx.erase_and_anonymize_regions(args);
 
+
+            if tcx.is_lang_item(trait_ref.def_id, LangItem::Destruct) {
+                if !tcx.is_lang_item(trait_item_id, LangItem::DestructDropFields) {
+                    bug!(
+                        "unexpected associated item for built-in `{trait_ref}`: {}",
+                        tcx.item_name(trait_item_id)
+                    );
+                }
+
+                // `Destruct` isn't object-safe and has no specialization concerns here,
+                // so the checks below (dyn-Trait overlap, defaultness, args-compatibility,
+                // compare_impl_item) don't apply so we build the Instance directly.
+                debug!("Got user Destruct impl");
+                return Ok(Some(Instance {
+                    def: ty::InstanceKind::Item(leaf_def.item.def_id),
+                    args,
+                }));
+            }
+
             // HACK: We may have overlapping `dyn Trait` built-in impls and
             // user-provided blanket impls. Detect that case here, and return
             // ambiguity.
@@ -429,6 +448,27 @@ fn resolve_associated_item<'tcx>(
                 } else {
                     bug!("unexpected associated associated item")
                 }
+            } else if tcx.is_lang_item(trait_ref.def_id, LangItem::Destruct) {
+                // TODO: is this necessary??
+                debug!(
+                    "resolving Destruct for ImplSource::Builtin: {:?}, {:?}, {:?}",
+                    typing_env, trait_item_id, rcvr_args
+                );
+                if !tcx.is_lang_item(trait_item_id, LangItem::DestructDropFields) {
+                    bug!(
+                        "unexpected associated item for built-in `{trait_ref}`: {}",
+                        tcx.item_name(trait_item_id)
+                    );
+                }
+
+                let self_ty = trait_ref.self_ty();
+
+                let def = if self_ty.needs_drop(tcx, typing_env) {
+                    return Ok(None),
+                } else {
+                    ty::InstanceKind::Shim(ty::ShimKind::DropGlue(trait_item_id, None))
+                };
+                Some(ty::Instance { def, args: rcvr_args })
             } else {
                 Instance::try_resolve_item_for_coroutine(tcx, trait_item_id, trait_id, rcvr_args)
             }

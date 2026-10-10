@@ -818,6 +818,7 @@ symbols! {
         derive_from,
         derive_smart_pointer,
         destruct,
+        destruct_drop_fields,
         destructuring_assignment,
         diagnostic,
         diagnostic_namespace,

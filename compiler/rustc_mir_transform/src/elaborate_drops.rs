@@ -344,14 +344,11 @@ impl<'a, 'tcx> ElaborateDropsCtxt<'a, 'tcx> {
                 continue;
             };
 
+            let drop_ty = place.ty(&self.body.local_decls, self.tcx).ty;
             // This place does not need dropping. It does not have an associated move-path, so the
             // match below will conservatively keep an unconditional drop. As that drop is useless,
             // just remove it here and now.
-            if !place
-                .ty(&self.body.local_decls, self.tcx)
-                .ty
-                .needs_drop(self.tcx, self.typing_env())
-            {
+            if !drop_ty.needs_drop(self.tcx, self.typing_env()) {
                 self.patch.patch_terminator(bb, TerminatorKind::Goto { target });
                 continue;
             }
@@ -375,6 +372,15 @@ impl<'a, 'tcx> ElaborateDropsCtxt<'a, 'tcx> {
                             Unwind::To(self.patch.terminate_block(reason))
                         }
                     };
+
+                    // Warn if we are skipping an existing custom Destruct::drop_fields impl due to
+                    // partial initialization.
+                    if Instance::try_resolve_drop_fields(tcx, typing_env, drop_ty).is_custom { //TODO
+                        if let DropStyle::Open = self.drop_style(path, DropFlagMode::Deep) {
+                            self.tcx.emit_node_span_lint(terminator.source_info.span)
+                        }
+                    }
+
                     self.init_data.seek_before(self.body.terminator_loc(bb));
                     elaborate_drop(
                         self,

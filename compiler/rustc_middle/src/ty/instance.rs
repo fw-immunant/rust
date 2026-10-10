@@ -169,6 +169,15 @@ pub enum ShimKind<'tcx> {
     /// `rustc_mir_transform::build_drop_shim`.
     DropGlue(DefId, Option<Ty<'tcx>>),
 
+    /// Custom logic to drop fields, instead of the default ladder.
+    ///
+    /// The `DefId` is for `core::ptr::drop_glue`.
+    /// The `Option<Ty<'tcx>>` is either `Some(T)`, or `None` for empty drop glue.
+    ///
+    /// The type must be monomorphic; for polymorphic drop glue use
+    /// `rustc_mir_transform::build_drop_shim`.
+    DropFields(DefId, Option<Ty<'tcx>>),
+
     /// Compiler-generated `<T as Clone>::clone` implementation.
     ///
     /// For all types that automatically implement `Copy`, a trivial `Clone` impl is provided too.
@@ -806,6 +815,16 @@ impl<'tcx> Instance<'tcx> {
             args,
             ty.ty_adt_def().and_then(|adt| tcx.hir_span_if_local(adt.did())).unwrap_or(DUMMY_SP),
         )
+    }
+
+    pub fn try_resolve_drop_fields(
+        tcx: TyCtxt<'tcx>,
+        typing_env: ty::TypingEnv<'tcx>,
+        ty: Ty<'tcx>,
+    ) -> Result<Option<Instance<'tcx>>, ErrorGuaranteed> {
+        let def_id = tcx.require_lang_item(LangItem::DestructDropFields, DUMMY_SP);
+        let args = tcx.mk_args(&[ty.into()]);
+        Instance::try_resolve(tcx, typing_env, def_id, args)
     }
 
     pub fn resolve_async_drop_in_place(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>) -> ty::Instance<'tcx> {

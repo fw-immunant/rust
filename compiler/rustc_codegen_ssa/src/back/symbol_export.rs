@@ -504,6 +504,7 @@ fn upstream_monomorphizations_provider(
     let mut instances: DefIdMap<UnordMap<_, _>> = Default::default();
 
     let drop_glue_fn_def_id = tcx.lang_items().drop_glue_fn();
+    //let destruct_drop_fields_def_id = tcx.lang_items().destruct_drop_fields();
     let async_drop_in_place_fn_def_id = tcx.lang_items().async_drop_in_place_fn();
 
     for &cnum in cnums.iter() {
