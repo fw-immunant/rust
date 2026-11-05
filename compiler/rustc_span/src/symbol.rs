@@ -1735,6 +1735,7 @@ symbols! {
         return_address,
         return_position_impl_trait_in_trait,
         return_type_notation,
+        reverse_drop_order,
         right_arrow: "->",
         riscv32,
         riscv64,

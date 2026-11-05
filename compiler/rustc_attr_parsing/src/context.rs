@@ -56,6 +56,7 @@ use crate::attributes::pin_v2::*;
 use crate::attributes::proc_macro_attrs::*;
 use crate::attributes::prototype::*;
 use crate::attributes::repr::*;
+use crate::attributes::reverse_drop_order::*;
 use crate::attributes::rustc_allocator::*;
 use crate::attributes::rustc_dump::*;
 use crate::attributes::rustc_internal::*;
@@ -291,6 +292,7 @@ attribute_parsers!(
         Single<WithoutArgs<ProcMacroAttributeParser>>,
         Single<WithoutArgs<ProcMacroParser>>,
         Single<WithoutArgs<ProfilerRuntimeParser>>,
+        Single<WithoutArgs<ReverseDropOrderParser>>,
         Single<WithoutArgs<RustcAllocatorParser>>,
         Single<WithoutArgs<RustcAllocatorZeroedParser>>,
         Single<WithoutArgs<RustcAllowIncoherentImplParser>>,

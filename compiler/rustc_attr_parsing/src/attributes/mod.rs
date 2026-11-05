@@ -65,6 +65,7 @@ pub(crate) mod pin_v2;
 pub(crate) mod proc_macro_attrs;
 pub(crate) mod prototype;
 pub(crate) mod repr;
+pub(crate) mod reverse_drop_order;
 pub(crate) mod rustc_allocator;
 pub(crate) mod rustc_dump;
 pub(crate) mod rustc_internal;

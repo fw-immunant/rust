@@ -157,6 +157,7 @@ pub static BUILTIN_ATTRIBUTES: &[Symbol] = &[
     sym::force_target_feature,
     sym::sanitize,
     sym::coverage,
+    sym::reverse_drop_order,
 
     sym::doc,
 

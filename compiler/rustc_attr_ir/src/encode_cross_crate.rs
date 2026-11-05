@@ -99,6 +99,7 @@ impl AttributeKind {
             ReexportTestHarnessMain(..) => No,
             RegisterTool { .. } => No,
             Repr { .. } => No,
+            ReverseDropOrder(..) => Yes, // do other crates ever need to generate drops for this type? maybe, for generics.
             RustcAbi { .. } => No,
             RustcAlign { .. } => No,
             RustcAllocator => No,

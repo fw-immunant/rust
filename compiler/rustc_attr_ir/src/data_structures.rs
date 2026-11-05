@@ -1104,6 +1104,9 @@ pub enum AttributeKind {
         first_span: Span,
     },
 
+    /// Represents `#[reverse_drop_order]`
+    ReverseDropOrder(Span),
+
     /// Represents `#[rustc_abi(..)]`
     RustcAbi {
         attr_span: Span,
