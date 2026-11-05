@@ -1080,8 +1080,12 @@ where
     ) -> (BasicBlock, Unwind, Option<BasicBlock>) {
         let (succ, unwind, dropline) = self.drop_ladder_bottom();
         if !adt.is_enum() {
-            let fields =
+            let mut fields =
                 self.move_paths_for_fields(self.place, self.path, adt.variant(FIRST_VARIANT), args);
+            // Take into account #[reverse_drop_order] for structs.
+            if adt.is_reverse_drop_order() {
+                fields.reverse();
+            }
             self.drop_ladder(fields, succ, unwind, dropline)
         } else {
             self.open_drop_for_multivariant(adt, args, succ, unwind, dropline)
@@ -1116,7 +1120,12 @@ where
                     self.place,
                     ProjectionElem::Downcast(Some(variant.name), variant_index),
                 );
-                let fields = self.move_paths_for_fields(base_place, variant_path, variant, args);
+                let mut fields =
+                    self.move_paths_for_fields(base_place, variant_path, variant, args);
+                // Take into account #[reverse_drop_order] for variant fields.
+                if adt.is_reverse_drop_order() {
+                    fields.reverse();
+                }
                 values.push(discr.val);
                 if let Unwind::To(unwind) = unwind {
                     // We can't use the half-ladder from the original

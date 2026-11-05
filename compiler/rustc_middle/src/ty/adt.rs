@@ -66,6 +66,8 @@ bitflags::bitflags! {
         const IS_FIELD_REPRESENTING_TYPE    = 1 << 13;
         /// Indicates whether the type is `MaybeDangling<_>`.
         const IS_MAYBE_DANGLING             = 1 << 14;
+        /// Indicates whether the ADT has a `#[reverse_drop_order]` attribute.
+        const IS_REVERSE_DROP_ORDER         = 1 << 15;
     }
 }
 rustc_data_structures::external_bitflags_debug! { AdtFlags }
@@ -405,6 +407,9 @@ impl AdtDefData {
         if tcx.is_lang_item(did, LangItem::FieldRepresentingType) {
             flags |= AdtFlags::IS_FIELD_REPRESENTING_TYPE;
         }
+        if find_attr!(tcx, did, ReverseDropOrder(..)) {
+            flags |= AdtFlags::IS_REVERSE_DROP_ORDER;
+        }
 
         AdtDefData { did, variants, flags, repr }
     }
@@ -532,6 +537,12 @@ impl<'tcx> AdtDef<'tcx> {
     #[inline]
     pub fn is_maybe_dangling(self) -> bool {
         self.flags().contains(AdtFlags::IS_MAYBE_DANGLING)
+    }
+
+    /// Returns `true` if this type's fields should be dropped in reverse order (last to first).
+    #[inline]
+    pub fn is_reverse_drop_order(self) -> bool {
+        self.flags().contains(AdtFlags::IS_REVERSE_DROP_ORDER)
     }
 
     /// Returns `true` if this is `Pin<T>`.
